@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d1827">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Fantasy členy</title>
+<style>
+:root{--bg:#111018;--card:#211d2b;--line:#3a3446;--text:#f5f2ea;--muted:#aaa2b5;--gold:#e5ad45;--good:#6ed19a;--bad:#ef7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#30243e,#111018 55%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{text-align:center;padding:20px 16px 12px}h1{font-size:25px;margin:4px 0}.muted{color:var(--muted);font-size:14px}
+main{max-width:720px;margin:auto;padding:8px 16px 92px}.screen{display:none}.screen.active{display:block}.card{background:linear-gradient(145deg,#272231,#1b1823);border:1px solid var(--line);border-radius:18px;padding:17px;margin:11px 0}
+button{width:100%;border:0;border-radius:14px;padding:14px;margin:7px 0;background:var(--gold);color:#17120a;font-size:16px;font-weight:800}
+button.secondary{background:#322c3b;color:var(--text)}button.choice{background:#292431;color:var(--text);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.grid .card{text-align:center}.emoji{font-size:42px}.big{font-size:32px;font-weight:850}.word{font-size:28px;font-weight:850}.scene{line-height:1.5;margin-top:10px}
+nav{position:fixed;z-index:5;left:0;right:0;bottom:0;background:#19161f;border-top:1px solid var(--line);display:flex;padding:5px 3px env(safe-area-inset-bottom)}
+nav button{background:transparent;color:#bcb5c5;padding:6px 2px;margin:0;font-size:10px}nav button.active{color:var(--gold)}nav b{display:block;font-size:20px}
+.ok{color:var(--good)}.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<header><div style="font-size:36px">⚔️ 🧙‍♀️ 👻</div><h1>Fantasy členy</h1><div class="muted">DER • DIE • DAS</div></header>
+<main>
+<section id="home" class="screen active"></section>
+<section id="learn" class="screen"></section>
+<section id="quiz" class="screen"></section>
+<section id="chronicle" class="screen"></section>
+<section id="stats" class="screen"></section>
+</main>
+<nav>
+<button data-s="home" onclick="show('home')">🏠<b>Domů</b></button>
+<button data-s="learn" onclick="show('learn')">📚<b>Učení</b></button>
+<button data-s="quiz" onclick="show('quiz');startQuiz()">🧠<b>Test</b></button>
+<button data-s="chronicle" onclick="show('chronicle');renderChronicle()">📖<b>Kronika</b></button>
+<button data-s="stats" onclick="show('stats');renderStats()">🏆<b>Pokrok</b></button>
+</nav>
+<script src="words.js"></script>
+<script>
+const icon={der:'⚔️',die:'🧙‍♀️',das:'👻'};
+let p=JSON.parse(localStorage.getItem('fc-progress')||'{}'),q=[],qi=0,score=0,learnList=[],li=0;
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem('fc-progress',JSON.stringify(p))}
+function st(w){return p[w[0]]||{r:0,x:0}}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.s===id));if(id==='home')renderHome();if(id==='learn')startLearn()}
+function renderHome(){$('home').innerHTML=`<div class="card"><h2>🗺️ Naše město</h2><p>🌊 Západ — ⚔️ Viking = <b>DER</b></p><p>🌳 Východ — 🧙‍♀️ Čarodějka = <b>DIE</b></p><p>🏰 Sever — 👻 Strašidlo = <b>DAS</b></p></div><div class="grid"><div class="card"><div class="emoji">⚔️</div><b>DER</b><br>${WORDS.filter(w=>w[3]=='der').length}</div><div class="card"><div class="emoji">🧙‍♀️</div><b>DIE</b><br>${WORDS.filter(w=>w[3]=='die').length}</div><div class="card"><div class="emoji">👻</div><b>DAS</b><br>${WORDS.filter(w=>w[3]=='das').length}</div></div><div class="card"><h2>🧠 Dnešní trénink</h2><p class="muted">Chybná slovíčka se vracejí častěji.</p><button onclick="show('quiz');startQuiz()">Začít test</button><button class="secondary" onclick="show('learn')">Učit se</button></div>`}
+function weighted(){let a=[];WORDS.forEach(w=>{let s=st(w),n=Math.min(7,1+s.x*2+(s.r<2?2:0));for(let i=0;i<n;i++)a.push(w)});return a.sort(()=>Math.random()-.5)}
+function startLearn(){learnList=weighted().slice(0,9);li=0;renderLearn()}
+function renderLearn(){let w=learnList[li];if(!w){show('home');return}$('learn').innerHTML=`<div class="card" style="text-align:center"><div class="emoji">${icon[w[3]]}</div><div class="word">${w[0]}</div><div class="muted">${w[1]}</div><div class="scene">${w[2]}</div></div><button onclick="learnRate(true)">✓ Umím</button><button class="secondary" onclick="learnRate(false)">✕ Nejsem si jistý</button>`}
+function learnRate(ok){let w=learnList[li],s=st(w);ok?s.r++:s.x++;p[w[0]]=s;save();li++;renderLearn()}
+function startQuiz(){q=weighted().slice(0,12);qi=0;score=0;renderQ()}
+function renderQ(){if(qi>=q.length){$('quiz').innerHTML=`<div class="card" style="text-align:center"><div class="big">${score} / ${q.length} 🎉</div></div><button onclick="startQuiz()">Nový test</button><button class="secondary" onclick="show('home')">Domů</button>`;return}let w=q[qi],opts=['der','die','das'].sort(()=>Math.random()-.5);$('quiz').innerHTML=`<div class="card"><div class="muted">Otázka ${qi+1} / ${q.length}</div><h2>${w[1]}</h2><div class="scene">${w[2]}</div></div>`+opts.map(x=>`<button class="choice" onclick="answer('${x}')">${x.toUpperCase()}</button>`).join('')}
+function answer(x){let w=q[qi],ok=x===w[3],s=st(w);ok?(score++,s.r++):s.x++;p[w[0]]=s;save();$('quiz').innerHTML=`<div class="card" style="text-align:center"><div class="big ${ok?'ok':'bad'}">${ok?'✅ Správně':'❌ Správně je '+w[0]}</div><div class="scene">${w[2]}</div></div><button onclick="qi++;renderQ()">Další →</button>`}
+function renderChronicle(){let out='<h2>📖 Kronika</h2><p class="muted">Všechna slovíčka z našeho dosavadního města.</p>';[['der','⚔️ Viking — DER'],['die','🧙‍♀️ Čarodějka — DIE'],['das','👻 Strašidlo — DAS']].forEach(g=>{out+=`<h2>${g[1]}</h2>`;WORDS.filter(w=>w[3]===g[0]).forEach(w=>out+=`<div class="card"><div class="word">${w[0]}</div><div class="muted">${w[1]}</div><div class="scene">${w[2]}</div></div>`)});$('chronicle').innerHTML=out}
+function renderStats(){let total=Object.values(p).reduce((a,s)=>a+s.r,0),weak=WORDS.map(w=>[w,st(w)]).filter(a=>a[1].x).sort((a,b)=>b[1].x-a[1].x).slice(0,12);$('stats').innerHTML=`<h2>🏆 Pokrok</h2><div class="card"><div class="big">${total}</div><div class="muted">správných odpovědí</div></div><h3>Nejistá slovíčka</h3>`+(weak.length?weak.map(a=>`<div class="card"><b>${a[0][0]}</b><br>❌ ${a[1].x} · ✅ ${a[1].r}</div>`).join(''):'<div class="card">Zatím žádná problémová slovíčka 🎉</div>')}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+renderHome();
+</script>
+</body></html>

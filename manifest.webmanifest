@@ -1,0 +1,17 @@
+{
+  "name": "Fantasy členy – der die das",
+  "short_name": "Fantasy členy",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111018",
+  "theme_color": "#1d1827",
+  "lang": "cs",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
